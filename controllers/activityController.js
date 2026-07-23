@@ -4,34 +4,29 @@ import db from "../config/db.js"
 // GET ACTIVITIES
 // ======================
 
-export const getActivities = (
-  req,
-  res
-) => {
+export const getActivities = async (req, res) => {
+  try {
+    const q = `
+      SELECT
+        activity_logs.*,
+        users.name,
+        users.role
 
-  const q = `
-    SELECT
-      activity_logs.*,
-      users.name,
-      users.role
+      FROM activity_logs
 
-    FROM activity_logs
+      JOIN users
+      ON activity_logs.user_id = users.id
 
-    JOIN users
-    ON activity_logs.user_id = users.id
+      ORDER BY activity_logs.created_at DESC
 
-    ORDER BY activity_logs.created_at DESC
+      LIMIT 20
+    `
 
-    LIMIT 20
-  `
-
-  db.query(q, (err, data) => {
-
-    if (err)
-      return res.status(500).json(err)
+    const [data] = await db.query(q)
 
     res.json(data)
-
-  })
-
+  } catch (err) {
+    console.error("GET ACTIVITIES ERROR:", err)
+    return res.status(500).json(err)
+  }
 }

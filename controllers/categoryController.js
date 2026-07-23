@@ -1,100 +1,81 @@
-import  db  from "../config/db.js"
+import db from "../config/db.js"
 
 // GET
-export const getCategories = (req, res) => {
+export const getCategories = async (req, res) => {
+  try {
+    const q = `
+      SELECT *
+      FROM categories
+      ORDER BY id DESC
+    `
 
-  const q = `
-    SELECT *
-    FROM categories
-    ORDER BY id DESC
-  `
-
-  db.query(q, (err, data) => {
-
-    if (err)
-      return res.status(500).json(err)
+    const [data] = await db.query(q)
 
     res.json(data)
-
-  })
-
+  } catch (err) {
+    console.error("GET CATEGORIES ERROR:", err)
+    return res.status(500).json(err)
+  }
 }
 
 // ADD
-export const addCategory = (req, res) => {
+export const addCategory = async (req, res) => {
+  try {
+    const { name } = req.body
 
-  const { name } = req.body
+    const q = `
+      INSERT INTO categories (name)
+      VALUES (?)
+    `
 
-  const q = `
-    INSERT INTO categories (name)
-    VALUES (?)
-  `
-
-  db.query(q, [name], (err) => {
-
-    if (err)
-      return res.status(500).json(err)
+    await db.query(q, [name])
 
     res.json({
-      message:
-      "Kategori berhasil ditambahkan"
+      message: "Kategori berhasil ditambahkan",
     })
-
-  })
-
+  } catch (err) {
+    console.error("ADD CATEGORY ERROR:", err)
+    return res.status(500).json(err)
+  }
 }
 
 // UPDATE
-export const updateCategory = (req, res) => {
+export const updateCategory = async (req, res) => {
+  try {
+    const { name } = req.body
 
-  const { name } = req.body
+    const q = `
+      UPDATE categories
+      SET name = ?
+      WHERE id = ?
+    `
 
-  const q = `
-    UPDATE categories
-    SET name = ?
-    WHERE id = ?
-  `
+    await db.query(q, [name, req.params.id])
 
-  db.query(
-    q,
-    [name, req.params.id],
-    (err) => {
-
-      if (err)
-        return res.status(500).json(err)
-
-      res.json({
-        message:
-        "Kategori berhasil diupdate"
-      })
-
-    }
-  )
-
+    res.json({
+      message: "Kategori berhasil diupdate",
+    })
+  } catch (err) {
+    console.error("UPDATE CATEGORY ERROR:", err)
+    return res.status(500).json(err)
+  }
 }
 
 // DELETE
-export const deleteCategory = (req, res) => {
+export const deleteCategory = async (req, res) => {
+  try {
+    const q = `
+      DELETE FROM categories
+      WHERE id = ?
+    `
 
-  const q = `
-    DELETE FROM categories
-    WHERE id = ?
-  `
+    await db.query(q, [req.params.id])
 
-  db.query(
-    q,
-    [req.params.id],
-    (err) => {
-
-      if (err)
-        return res.status(500).json(err)
-
-      res.json({
-        message:
-        "Kategori berhasil dihapus"
-      })
-
-    }
-  )
-
+    res.json({
+      message: "Kategori berhasil dihapus",
+    })
+  } catch (err) {
+    console.error("DELETE CATEGORY ERROR:", err)
+    return res.status(500).json(err)
+  }
 }
