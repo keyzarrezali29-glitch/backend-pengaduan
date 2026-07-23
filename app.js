@@ -26,21 +26,30 @@ const app = express()
 // ======================
 // MIDDLEWARE
 // ======================
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
-
-app.use(express.json())
-
-app.use(express.urlencoded({
-  extended: true
-}))
-
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:3000",
   "https://keyzarrezali29-glitch-pedumas-front.vercel.app"
 ];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    console.log("Request Origin:", origin);
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.log("CORS BLOCKED:", origin);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ======================
 // STATIC FILES
@@ -64,6 +73,12 @@ app.use(
   "/api/laporan",
   laporanRoutes
 )
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "OK"
+  });
+});
 
 // ======================
 // COMMENT ROUTES
