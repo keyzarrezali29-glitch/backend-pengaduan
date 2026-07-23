@@ -1,49 +1,23 @@
 import db from "../config/db.js"
 
-export const logActivity = (
-  userId,
-  activity
-) => {
-
+export const logActivity = async (userId, activity) => {
   // CEK DATA
   if (!userId || !activity) {
-
-    console.log(
-      "Activity log dilewati"
-    )
-
+    console.log("Activity log dilewati")
     return
-
   }
 
-  const q = `
-    INSERT INTO activity_logs
-    (
-      user_id,
-      activity
-    )
+  try {
+    const q = `
+      INSERT INTO activity_logs
+      (user_id, activity)
+      VALUES (?, ?)
+    `
 
-    VALUES (?, ?)
-  `
-
-  db.query(
-    q,
-    [userId, activity],
-
-    (err) => {
-
-      // BIAR TIDAK CRASH SERVER
-      if (err) {
-
-        console.log(
-          "Activity log error:"
-        )
-
-        console.log(err)
-
-      }
-
-    }
-  )
-
+    await db.query(q, [userId, activity])
+  } catch (err) {
+    // BIAR TIDAK CRASH SERVER
+    console.log("Activity log error:")
+    console.log(err)
+  }
 }
