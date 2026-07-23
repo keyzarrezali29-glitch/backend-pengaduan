@@ -26,6 +26,10 @@ const app = express()
 // ======================
 // MIDDLEWARE
 // ======================
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 
 app.use(express.json())
 
@@ -34,14 +38,9 @@ app.use(express.urlencoded({
 }))
 
 const allowedOrigins = [
-  "http://localhost:3000",
+  "http://localhost:5173",
   "https://keyzarrezali29-glitch-pedumas-front.vercel.app"
 ];
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
 
 // ======================
 // STATIC FILES
