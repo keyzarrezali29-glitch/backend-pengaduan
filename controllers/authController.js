@@ -7,78 +7,46 @@ import { logActivity } from "../utils/logActivity.js"
 // REGISTER
 // ======================
 
-export const register = (req, res) => {
+export const register = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
 
-  const {
-    name,
-    email,
-    password,
-    role
-  } = req.body
+    const [existingUser] = await db.query(
+      "SELECT id FROM users WHERE email = ?",
+      [email]
+    );
 
-  db.query(
-    "SELECT * FROM users WHERE email = ?",
-    [email],
-
-    (err, result) => {
-
-      if (err)
-        return res.status(500).json(err)
-
-      if (result.length > 0) {
-
-        return res.status(400).json({
-          message: "Email sudah digunakan",
-        })
-
-      }
-
-      const hashedPassword =
-        bcrypt.hashSync(password, 10)
-
-      db.query(
-        `
-        INSERT INTO users
-        (
-          name,
-          email,
-          password,
-          role
-        )
-
-        VALUES (?, ?, ?, ?)
-        `,
-
-        [
-          name,
-          email,
-          hashedPassword,
-          role || "user",
-        ],
-
-        (err, data) => {
-
-          if (err)
-            return res.status(500).json(err)
-
-          // ACTIVITY REGISTER
-          logActivity(
-            data.insertId,
-            `${name} melakukan registrasi`
-          )
-
-          res.json({
-            message: "Register berhasil",
-          })
-
-        }
-      )
-
+    if (existingUser.length > 0) {
+      return res.status(400).json({
+        message: "Email sudah digunakan",
+      });
     }
-  )
 
-}
+    const hashedPassword = await bcrypt.hash(password, 10);
 
+    const [result] = await db.query(
+      `INSERT INTO users (name, email, password, role)
+       VALUES (?, ?, ?, ?)`,
+      [name, email, hashedPassword, role || "user"]
+    );
+
+    res.status(201).json({
+      message: "Register berhasil",
+    });
+
+    logActivity(
+      result.insertId,
+      `${name} melakukan registrasi`
+    ).catch(console.error);
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
+
+    return res.status(500).json({
+      message: "Terjadi kesalahan saat registrasi",
+      error: error.message,
+    });
+  }
+};
 // ======================
 // LOGIN
 // ======================
