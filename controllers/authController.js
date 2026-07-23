@@ -83,79 +83,68 @@ export const register = (req, res) => {
 // LOGIN
 // ======================
 
-export const login = (req, res) => {
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-  const {
-    email,
-    password
-  } = req.body
+    const [result] = await db.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
 
-  db.query(
-    "SELECT * FROM users WHERE email = ?",
-    [email],
-
-    (err, result) => {
-
-      if (err)
-        return res.status(500).json(err)
-
-      if (result.length === 0) {
-
-        return res.status(404).json({
-          message: "User tidak ditemukan",
-        })
-
-      }
-
-      const user = result[0]
-
-      const isMatch =
-        bcrypt.compareSync(
-          password,
-          user.password
-        )
-
-      if (!isMatch) {
-
-        return res.status(400).json({
-          message: "Password salah",
-        })
-
-      }
-
-      // ACTIVITY LOGIN
-      logActivity(
-        user.id,
-        `${user.name} login ke sistem`
-      )
-
-      const token = jwt.sign(
-        {
-          id: user.id,
-          role: user.role,
-        },
-
-        process.env.JWT_SECRET,
-
-        {
-          expiresIn: "7d",
-        }
-      )
-
-      const {
-        password: userPassword,
-        ...other
-      } = user
-
-      res.json({
-        token,
-        user: other,
-      })
-
+    if (result.length === 0) {
+      return res.status(404).json({
+        message: "User tidak ditemukan",
+      });
     }
-  )
 
-}
+    const user = result[0];
+
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Password salah",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    const {
+      password: userPassword,
+      ...other
+    } = user;
+
+    res.json({
+      token,
+      user: other,
+    });
+
+    logActivity(
+      user.id,
+      `${user.name} login ke sistem`
+    ).catch(console.error);
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+
+    return res.status(500).json({
+      message: "Terjadi kesalahan saat login",
+      error: error.message,
+    });
+  }
+};
 
 // ======================
 // UPDATE PROFILE
