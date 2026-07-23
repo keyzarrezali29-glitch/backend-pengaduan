@@ -1,4 +1,4 @@
-import { db } from "../config/db.js"
+import db from "../config/db.js"
 
 export const sendNotification = (
   user_id,
