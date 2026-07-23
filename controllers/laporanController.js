@@ -1,4 +1,4 @@
-import { db } from "../config/db.js"
+import  db  from "../config/db.js"
 import { logActivity } from "../utils/logActivity.js"
 import { createNotification } from "../utils/createNotification.js"
 
