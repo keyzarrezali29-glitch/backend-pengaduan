@@ -29,7 +29,8 @@ const app = express()
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  "https://keyzarrezali29-glitch-pedumas-front.vercel.app"
+  "https://keyzarrezali29-glitch-pedumas-front.vercel.app",
+  "https://pedumas-frontend-b3iirawd8-keyzarrezali29-glitchs-projects.vercel.app"
 ];
 
 app.use(cors({
